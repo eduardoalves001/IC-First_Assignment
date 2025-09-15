@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/eduardo/Desktop/IC-First_Assignment/sndfile-example/src/wav_hist.cpp
+iostream
+-
+vector
+-
+sndfile.hh
+-
+wav_hist.h
+/home/eduardo/Desktop/IC-First_Assignment/sndfile-example/src/wav_hist.h
+cmath
+-
+fstream
+-
+
+/home/eduardo/Desktop/IC-First_Assignment/sndfile-example/src/wav_hist.h
+iostream
+-
+vector
+-
+map
+-
+sndfile.hh
+-
+fstream
+-
+
