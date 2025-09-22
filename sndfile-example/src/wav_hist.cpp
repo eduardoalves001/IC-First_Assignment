@@ -76,3 +76,40 @@ int main(int argc, char *argv[]) {
     hist.dump(channel, binSize);
     return 0;
 }
+
+void WAVHist::dumpToFile(const std::string& filename, size_t channel, int binSize) const {
+    const std::map<int, size_t>* histPtr = nullptr;
+
+    if(channel < (size_t)nChannels) {
+        histPtr = &counts[channel];
+    } else if(channel == (size_t)nChannels && nChannels == 2) {
+        histPtr = &midHist;
+    } else if(channel == (size_t)nChannels+1 && nChannels == 2) {
+        histPtr = &sideHist;
+    } else {
+        std::cerr << "Error: invalid channel index\n";
+        return;
+    }
+
+    std::map<int, size_t> rebinned;
+    if(binSize > 1) {
+        for(const auto& [value, counter] : *histPtr) {
+            int bin = (value / binSize) * binSize;
+            rebinned[bin] += counter;
+        }
+    }
+
+    const auto& finalHist = (binSize > 1) ? rebinned : *histPtr;
+
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        std::cerr << "Error: could not open file " << filename << " for writing\n";
+        return;
+    }
+
+    for(const auto& [value, counter] : finalHist) {
+        outFile << value << "\t" << counter << "\n";
+    }
+
+    std::cout << "Histogram data saved to " << filename << "\n";
+}

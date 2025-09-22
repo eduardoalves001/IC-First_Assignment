@@ -111,6 +111,45 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named wav_effects
+
+# Build rule for target.
+wav_effects: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 wav_effects
+.PHONY : wav_effects
+
+# fast build rule for target.
+wav_effects/fast:
+	$(MAKE) -f CMakeFiles/wav_effects.dir/build.make CMakeFiles/wav_effects.dir/build
+.PHONY : wav_effects/fast
+
+#=============================================================================
+# Target rules for targets named wav_cmp
+
+# Build rule for target.
+wav_cmp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 wav_cmp
+.PHONY : wav_cmp
+
+# fast build rule for target.
+wav_cmp/fast:
+	$(MAKE) -f CMakeFiles/wav_cmp.dir/build.make CMakeFiles/wav_cmp.dir/build
+.PHONY : wav_cmp/fast
+
+#=============================================================================
+# Target rules for targets named wav_quant
+
+# Build rule for target.
+wav_quant: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 wav_quant
+.PHONY : wav_quant
+
+# fast build rule for target.
+wav_quant/fast:
+	$(MAKE) -f CMakeFiles/wav_quant.dir/build.make CMakeFiles/wav_quant.dir/build
+.PHONY : wav_quant/fast
+
+#=============================================================================
 # Target rules for targets named wav_dct
 
 # Build rule for target.
@@ -148,6 +187,33 @@ wav_cp: cmake_check_build_system
 wav_cp/fast:
 	$(MAKE) -f CMakeFiles/wav_cp.dir/build.make CMakeFiles/wav_cp.dir/build
 .PHONY : wav_cp/fast
+
+wav_cmp.o: wav_cmp.cpp.o
+
+.PHONY : wav_cmp.o
+
+# target to build an object file
+wav_cmp.cpp.o:
+	$(MAKE) -f CMakeFiles/wav_cmp.dir/build.make CMakeFiles/wav_cmp.dir/wav_cmp.cpp.o
+.PHONY : wav_cmp.cpp.o
+
+wav_cmp.i: wav_cmp.cpp.i
+
+.PHONY : wav_cmp.i
+
+# target to preprocess a source file
+wav_cmp.cpp.i:
+	$(MAKE) -f CMakeFiles/wav_cmp.dir/build.make CMakeFiles/wav_cmp.dir/wav_cmp.cpp.i
+.PHONY : wav_cmp.cpp.i
+
+wav_cmp.s: wav_cmp.cpp.s
+
+.PHONY : wav_cmp.s
+
+# target to generate assembly for a file
+wav_cmp.cpp.s:
+	$(MAKE) -f CMakeFiles/wav_cmp.dir/build.make CMakeFiles/wav_cmp.dir/wav_cmp.cpp.s
+.PHONY : wav_cmp.cpp.s
 
 wav_cp.o: wav_cp.cpp.o
 
@@ -203,6 +269,33 @@ wav_dct.cpp.s:
 	$(MAKE) -f CMakeFiles/wav_dct.dir/build.make CMakeFiles/wav_dct.dir/wav_dct.cpp.s
 .PHONY : wav_dct.cpp.s
 
+wav_effects.o: wav_effects.cpp.o
+
+.PHONY : wav_effects.o
+
+# target to build an object file
+wav_effects.cpp.o:
+	$(MAKE) -f CMakeFiles/wav_effects.dir/build.make CMakeFiles/wav_effects.dir/wav_effects.cpp.o
+.PHONY : wav_effects.cpp.o
+
+wav_effects.i: wav_effects.cpp.i
+
+.PHONY : wav_effects.i
+
+# target to preprocess a source file
+wav_effects.cpp.i:
+	$(MAKE) -f CMakeFiles/wav_effects.dir/build.make CMakeFiles/wav_effects.dir/wav_effects.cpp.i
+.PHONY : wav_effects.cpp.i
+
+wav_effects.s: wav_effects.cpp.s
+
+.PHONY : wav_effects.s
+
+# target to generate assembly for a file
+wav_effects.cpp.s:
+	$(MAKE) -f CMakeFiles/wav_effects.dir/build.make CMakeFiles/wav_effects.dir/wav_effects.cpp.s
+.PHONY : wav_effects.cpp.s
+
 wav_hist.o: wav_hist.cpp.o
 
 .PHONY : wav_hist.o
@@ -230,6 +323,33 @@ wav_hist.cpp.s:
 	$(MAKE) -f CMakeFiles/wav_hist.dir/build.make CMakeFiles/wav_hist.dir/wav_hist.cpp.s
 .PHONY : wav_hist.cpp.s
 
+wav_quant.o: wav_quant.cpp.o
+
+.PHONY : wav_quant.o
+
+# target to build an object file
+wav_quant.cpp.o:
+	$(MAKE) -f CMakeFiles/wav_quant.dir/build.make CMakeFiles/wav_quant.dir/wav_quant.cpp.o
+.PHONY : wav_quant.cpp.o
+
+wav_quant.i: wav_quant.cpp.i
+
+.PHONY : wav_quant.i
+
+# target to preprocess a source file
+wav_quant.cpp.i:
+	$(MAKE) -f CMakeFiles/wav_quant.dir/build.make CMakeFiles/wav_quant.dir/wav_quant.cpp.i
+.PHONY : wav_quant.cpp.i
+
+wav_quant.s: wav_quant.cpp.s
+
+.PHONY : wav_quant.s
+
+# target to generate assembly for a file
+wav_quant.cpp.s:
+	$(MAKE) -f CMakeFiles/wav_quant.dir/build.make CMakeFiles/wav_quant.dir/wav_quant.cpp.s
+.PHONY : wav_quant.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -238,18 +358,30 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... wav_effects"
+	@echo "... wav_cmp"
+	@echo "... wav_quant"
 	@echo "... wav_dct"
 	@echo "... wav_hist"
 	@echo "... wav_cp"
+	@echo "... wav_cmp.o"
+	@echo "... wav_cmp.i"
+	@echo "... wav_cmp.s"
 	@echo "... wav_cp.o"
 	@echo "... wav_cp.i"
 	@echo "... wav_cp.s"
 	@echo "... wav_dct.o"
 	@echo "... wav_dct.i"
 	@echo "... wav_dct.s"
+	@echo "... wav_effects.o"
+	@echo "... wav_effects.i"
+	@echo "... wav_effects.s"
 	@echo "... wav_hist.o"
 	@echo "... wav_hist.i"
 	@echo "... wav_hist.s"
+	@echo "... wav_quant.o"
+	@echo "... wav_quant.i"
+	@echo "... wav_quant.s"
 .PHONY : help
 
 
