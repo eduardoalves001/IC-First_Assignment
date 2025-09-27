@@ -1,4 +1,4 @@
 .vscode/
-sndfile-example/build/
+sndfile-example/src/build/
 sndfile-example/bin/
-
+sndfile-example/src/CMakeLists.txt
