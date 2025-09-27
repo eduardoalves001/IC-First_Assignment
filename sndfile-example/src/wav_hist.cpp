@@ -18,8 +18,6 @@
 #include <vector>
 #include <sndfile.hh>
 #include "wav_hist.h"
-#include <cmath>
-#include <fstream>
 
 using namespace std;
 
@@ -27,89 +25,81 @@ constexpr size_t FRAMES_BUFFER_SIZE = 65536; // Buffer for reading frames
 
 int main(int argc, char *argv[]) {
 
-    if(argc < 3) {
-        cerr << "Usage: " << argv[0] << " <input file> <channel> [binSize]\n";
-        cerr << "channel: 0..N-1 = original channels, N = MID, N+1 = SIDE (if stereo)\n";
-        cerr << "binSize: optional, default=1 (use 2,4,8,... for coarser bins)\n";
-        return 1;
+	if(argc < 3) {
+		cerr << "Usage: " << argv[0] << " [-b binSize] <input file> <channel|MID|SIDE>\n";
+		cerr << "  channel: 0, 1, 2, ... for individual channels\n";
+		cerr << "  MID: for MID channel (stereo only)\n";
+		cerr << "  SIDE: for SIDE channel (stereo only)\n";
+		cerr << "  binSize: 1, 2, 4, 8, ... (power of 2, default=1)\n";
+		return 1;
+	}
+
+	int binSize = 1;
+	int argOffset = 0;
+	
+	// Check for bin size option
+	if(argc >= 4 && string(argv[1]) == "-b") {
+		binSize = stoi(argv[2]);
+		argOffset = 2;
+		
+		// Validate bin size is power of 2
+		if(binSize <= 0 || (binSize & (binSize - 1)) != 0) {
+			cerr << "Error: bin size must be a positive power of 2\n";
+			return 1;
+		}
+	}
+
+	SndfileHandle sndFile { argv[argc-2] };
+	if(sndFile.error()) {
+		cerr << "Error: invalid input file\n";
+		return 1;
     }
 
-    SndfileHandle sndFile { argv[1] };
-    if(sndFile.error()) {
-        cerr << "Error: invalid input file\n";
-        return 1;
-    }
+	if((sndFile.format() & SF_FORMAT_TYPEMASK) != SF_FORMAT_WAV) {
+		cerr << "Error: file is not in WAV format\n";
+		return 1;
+	}
 
-    if((sndFile.format() & SF_FORMAT_TYPEMASK) != SF_FORMAT_WAV) {
-        cerr << "Error: file is not in WAV format\n";
-        return 1;
-    }
+	if((sndFile.format() & SF_FORMAT_SUBMASK) != SF_FORMAT_PCM_16) {
+		cerr << "Error: file is not in PCM_16 format\n";
+		return 1;
+	}
 
-    if((sndFile.format() & SF_FORMAT_SUBMASK) != SF_FORMAT_PCM_16) {
-        cerr << "Error: file is not in PCM_16 format\n";
-        return 1;
-    }
+	string channelArg { argv[argc-1] };
+	
+	// Process the audio file
+	size_t nFrames;
+	vector<short> samples(FRAMES_BUFFER_SIZE * sndFile.channels());
+	WAVHist hist { sndFile, binSize };
+	while((nFrames = sndFile.readf(samples.data(), FRAMES_BUFFER_SIZE))) {
+		samples.resize(nFrames * sndFile.channels());
+		hist.update(samples);
+	}
 
-    int channel { stoi(argv[2]) };
-    int binSize = (argc >= 4) ? stoi(argv[3]) : 1;
+	// Output the requested histogram
+	if(channelArg == "MID") {
+		if(!hist.hasMidSide()) {
+			cerr << "Error: MID channel only available for stereo audio\n";
+			return 1;
+		}
+		hist.dumpMid();
+	}
+	else if(channelArg == "SIDE") {
+		if(!hist.hasMidSide()) {
+			cerr << "Error: SIDE channel only available for stereo audio\n";
+			return 1;
+		}
+		hist.dumpSide();
+	}
+	else {
+		int channel = stoi(channelArg);
+		if(channel >= sndFile.channels()) {
+			cerr << "Error: invalid channel requested\n";
+			return 1;
+		}
+		hist.dump(channel);
+	}
 
-    int nChannels = sndFile.channels();
-    int maxChannel = nChannels - 1;
-    if(nChannels == 2) {
-        maxChannel = nChannels + 1; // allow MID and SIDE
-    }
-
-    if(channel > maxChannel) {
-        cerr << "Error: invalid channel requested\n";
-        return 1;
-    }
-
-    size_t nFrames;
-    vector<short> samples(FRAMES_BUFFER_SIZE * nChannels);
-    WAVHist hist { sndFile };
-
-    while((nFrames = sndFile.readf(samples.data(), FRAMES_BUFFER_SIZE))) {
-        samples.resize(nFrames * nChannels);
-        hist.update(samples);
-    }
-
-    hist.dump(channel, binSize);
-    return 0;
+	return 0;
 }
 
-void WAVHist::dumpToFile(const std::string& filename, size_t channel, int binSize) const {
-    const std::map<int, size_t>* histPtr = nullptr;
-
-    if(channel < (size_t)nChannels) {
-        histPtr = &counts[channel];
-    } else if(channel == (size_t)nChannels && nChannels == 2) {
-        histPtr = &midHist;
-    } else if(channel == (size_t)nChannels+1 && nChannels == 2) {
-        histPtr = &sideHist;
-    } else {
-        std::cerr << "Error: invalid channel index\n";
-        return;
-    }
-
-    std::map<int, size_t> rebinned;
-    if(binSize > 1) {
-        for(const auto& [value, counter] : *histPtr) {
-            int bin = (value / binSize) * binSize;
-            rebinned[bin] += counter;
-        }
-    }
-
-    const auto& finalHist = (binSize > 1) ? rebinned : *histPtr;
-
-    std::ofstream outFile(filename);
-    if (!outFile) {
-        std::cerr << "Error: could not open file " << filename << " for writing\n";
-        return;
-    }
-
-    for(const auto& [value, counter] : finalHist) {
-        outFile << value << "\t" << counter << "\n";
-    }
-
-    std::cout << "Histogram data saved to " << filename << "\n";
-}

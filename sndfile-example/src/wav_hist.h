@@ -21,75 +21,74 @@
 #include <vector>
 #include <map>
 #include <sndfile.hh>
-#include <fstream> // Include fstream for std::ofstream
+#include <cmath>
 
 class WAVHist {
   private:
-    int nChannels;
-    std::vector<std::map<int, size_t>> counts; // per-channel histograms
-    std::map<int, size_t> midHist;             // (L+R)/2
-    std::map<int, size_t> sideHist;            // (L-R)/2
+	std::vector<std::map<short, size_t>> counts;
+	std::map<short, size_t> midCounts;  // MID channel histogram
+	std::map<short, size_t> sideCounts; // SIDE channel histogram
+	int binSize;
+	int numChannels;
 
   public:
-    WAVHist(const SndfileHandle& sfh) {
-        nChannels = sfh.channels();
-        counts.resize(nChannels);
-    }
+	WAVHist(const SndfileHandle& sfh, int binSize = 1) : binSize(binSize), numChannels(sfh.channels()) {
+		counts.resize(sfh.channels());
+	}
 
-    void update(const std::vector<short>& samples) {
-        size_t nFrames = samples.size() / nChannels;
-        for(size_t i = 0; i < nFrames; i++) {
-            // Update each channel histogram
-            for(int ch = 0; ch < nChannels; ch++) {
-                short value = samples[i * nChannels + ch];
-                counts[ch][value]++;
-            }
+	void update(const std::vector<short>& samples) {
+		size_t n { };
+		for(auto s : samples) {
+			// Original channel histograms with binning
+			short binValue = (binSize == 1) ? s : s / binSize;
+			counts[n++ % counts.size()][binValue]++;
+		}
+		
+		// Calculate MID and SIDE for stereo audio
+		if(numChannels == 2) {
+			for(size_t i = 0; i < samples.size(); i += 2) {
+				if(i + 1 < samples.size()) {
+					short left = samples[i];
+					short right = samples[i + 1];
+					
+					// MID = (L + R) / 2, SIDE = (L - R) / 2
+					short mid = (left + right) / 2;
+					short side = (left - right) / 2;
+					
+					// Apply binning
+					short midBin = (binSize == 1) ? mid : mid / binSize;
+					short sideBin = (binSize == 1) ? side : side / binSize;
+					
+					midCounts[midBin]++;
+					sideCounts[sideBin]++;
+				}
+			}
+		}
+	}
 
-            // If stereo, also update MID and SIDE
-            if(nChannels == 2) {
-                int L = samples[i * 2];
-                int R = samples[i * 2 + 1];
-                int MID  = (L + R) / 2;
-                int SIDE = (L - R) / 2;
-                midHist[MID]++;
-                sideHist[SIDE]++;
-            }
-        }
-    }
-
-    // Dump a histogram
-    // channel: 0..N-1 = original channels, N = MID, N+1 = SIDE (if stereo)
-    // binSize: grouping factor (1 = original resolution, 2/4/8... = coarser bins)
-    void dump(size_t channel, int binSize = 1) const {
-        const std::map<int, size_t>* histPtr = nullptr;
-
-        if(channel < (size_t)nChannels) {
-            histPtr = &counts[channel];
-        } else if(channel == (size_t)nChannels && nChannels == 2) {
-            histPtr = &midHist;
-        } else if(channel == (size_t)nChannels+1 && nChannels == 2) {
-            histPtr = &sideHist;
-        } else {
-            std::cerr << "Error: invalid channel index\n";
-            return;
-        }
-
-        std::map<int, size_t> rebinned;
-        if(binSize > 1) {
-            for(const auto& [value, counter] : *histPtr) {
-                int bin = (value / binSize) * binSize;
-                rebinned[bin] += counter;
-            }
-        }
-
-        const auto& finalHist = (binSize > 1) ? rebinned : *histPtr;
-
-        for(const auto& [value, counter] : finalHist)
-            std::cout << value << '\t' << counter << '\n';
-    }
-
-    // Method to save histogram data to a file
-    void dumpToFile(const std::string& filename, size_t channel, int binSize) const;
+	void dump(const size_t channel) const {
+		if(channel < counts.size()) {
+			for(auto [value, counter] : counts[channel])
+				std::cout << value << '\t' << counter << '\n';
+		}
+	}
+	
+	void dumpMid() const {
+		for(auto [value, counter] : midCounts)
+			std::cout << value << '\t' << counter << '\n';
+	}
+	
+	void dumpSide() const {
+		for(auto [value, counter] : sideCounts)
+			std::cout << value << '\t' << counter << '\n';
+	}
+	
+	// Get number of channels for validation
+	int getChannels() const { return numChannels; }
+	
+	// Check if MID/SIDE data is available
+	bool hasMidSide() const { return numChannels == 2 && !midCounts.empty(); }
 };
 
 #endif
+
