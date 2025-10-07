@@ -18,3 +18,19 @@ target_sources(Common PRIVATE bit_stream.cpp byte_stream.cpp)
 add_executable (text2bin text2bin.cpp $<TARGET_OBJECTS:Common>)
 add_executable (bin2text bin2text.cpp $<TARGET_OBJECTS:Common>)
 
+add_library(BitStreamLib OBJECT 
+    bit_stream.cpp 
+    byte_stream.cpp)
+
+add_executable (wav_quant_enc wav_quant_enc.cpp $<TARGET_OBJECTS:BitStreamLib>)
+target_link_libraries (wav_quant_enc sndfile)
+
+add_executable (wav_quant_dec wav_quant_dec.cpp $<TARGET_OBJECTS:BitStreamLib>)
+target_link_libraries (wav_quant_dec sndfile)
+
+add_executable (wav_dct_enc wav_dct_enc.cpp $<TARGET_OBJECTS:BitStreamLib>)
+target_link_libraries (wav_dct_enc sndfile fftw3)
+
+add_executable (wav_dct_dec wav_dct_dec.cpp $<TARGET_OBJECTS:BitStreamLib>)
+target_link_libraries (wav_dct_dec sndfile fftw3)
+
