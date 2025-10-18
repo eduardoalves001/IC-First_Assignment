@@ -240,7 +240,7 @@ public:
         }
     }
     
-    // Effect 9: Fade In/Out
+    // Effect 8: Fade In/Out
     void applyFade(bool fadeIn, double durationMs) {
         size_t fadeSamples = static_cast<size_t>(durationMs * sampleRate / 1000.0);
         fadeSamples = min(fadeSamples, numFrames);
